@@ -1,19 +1,16 @@
 package demo;
 
 import java.io.IOException;
-import javax.servlet.RequestDispatcher;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
-
-    private static final String VALID_USERNAME = "admin";
-    private static final String VALID_PASSWORD = "1234";
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -21,21 +18,36 @@ public class LoginServlet extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-        if (VALID_USERNAME.equals(username) && VALID_PASSWORD.equals(password)) {
-            HttpSession session = request.getSession();
-            session.setAttribute("username", username);
+        try (Connection con = DBConnection.getConnection()) {
 
-            request.getRequestDispatcher("/welcome.jsp")
-                   .forward(request, response);
-        } else {
-            request.setAttribute("error", "Invalid username or password!");
-            request.getRequestDispatcher("/login.jsp")
-                   .forward(request, response);
+            if (con == null) {
+                request.setAttribute("error", "DB connection failed");
+                request.getRequestDispatcher("login.jsp")
+                       .forward(request, response);
+                return;
+            }
+
+            String sql = "SELECT * FROM users WHERE username=? AND password=?";
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setString(1, username);
+            ps.setString(2, password);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                HttpSession session = request.getSession();
+                session.setAttribute("username", username);
+                request.getRequestDispatcher("welcome.jsp")
+                       .forward(request, response);
+            } else {
+                request.setAttribute("error", "Invalid credentials");
+                request.getRequestDispatcher("login.jsp")
+                       .forward(request, response);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
-
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        response.sendRedirect("login.jsp");
     }
 }

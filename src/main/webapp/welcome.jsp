@@ -1,42 +1,24 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<%@ page import="javax.servlet.RequestDispatcher" %>
 
-<!DOCTYPE html>
 <html>
-<head>
-    <title>Welcome</title>
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            margin-top: 100px;
-        }
-        .logout {
-            color: red;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
 <body>
 
 <%
-    // Get existing session only (do NOT create new)
-    HttpSession sessionObj = request.getSession(false);
+    String user = (String) session.getAttribute("username");
 
-    if (sessionObj == null || sessionObj.getAttribute("username") == null) {
-        request.setAttribute("error", "Session expired! Please login again.");
-        request.getRequestDispatcher("login.jsp").forward(request, response);
+    if (user == null) {
+        request.setAttribute("error", "Session expired");
+        RequestDispatcher rd = request.getRequestDispatcher("login.jsp");
+        rd.forward(request, response);
         return;
     }
-
-    String username = (String) sessionObj.getAttribute("username");
 %>
 
-<h2>Welcome, <%= username %>!</h2>
-<p>You are successfully logged in.</p>
+<h2>Welcome <%= user %></h2>
+<p>Login successful using JDBC</p>
 
-<a href="logout" class="logout">Logout</a>
+<a href="logout">Logout</a>
 
 </body>
 </html>
