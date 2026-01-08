@@ -18,6 +18,23 @@
 <h2>Welcome <%= user %></h2>
 <p>Login successful using JDBC</p>
 
+<!-- Update Password Form -->
+<h3>Update Password</h3>
+
+<form action="updatePassword" method="post">
+    New Password: 
+    <input type="password" name="newpass" required>
+    <input type="submit" value="Update">
+</form>
+
+<% 
+    String msg = (String) request.getAttribute("msg");
+    if (msg != null) { 
+%>
+    <p style="color:green;"><%= msg %></p>
+<% } %>
+
+<br>
 <a href="logout">Logout</a>
 
 </body>
